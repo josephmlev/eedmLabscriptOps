@@ -10,10 +10,12 @@ from labscript_devices.PrawnBlaster.labscript_devices import PrawnBlaster
 
 #from labscript_devices import IDS_PeakCamera
 from user_devices.IDS_PeakCamera.labscript_devices import IDS_PeakCamera
+from user_devices.BBD301.labscript_devices import BBD301
+
 def ct():
     PrawnBlaster(
         name                = 'prawn', 
-        com_port            = 'COM10', 
+        com_port            = 'COM11', 
         num_pseudoclocks    = 1,
         pico_board          = 'pico2'
     )
@@ -42,10 +44,12 @@ def ct():
     DigitalOut(name='do6363_0', parent_device=NI6363, connection='port0/line0')
     DigitalOut(name='do6363_1', parent_device=NI6363, connection='port0/line1')
     DigitalOut(name='do6363_2', parent_device=NI6363, connection='port0/line2')
-    DigitalOut(name='do6363_3', parent_device=NI6363, connection='port0/line3')
-    DigitalOut(name='do6363_4', parent_device=NI6363, connection='port0/line4')
-    DigitalOut(name='MOT_SHUTTER_do', parent_device=NI6363, connection='port0/line5')
-    DigitalOut(name='MRR_SHUTTER_do', parent_device=NI6363, connection='port0/line6')
+    DigitalOut(name='MOT_COIL_do', parent_device=NI6363, connection='port0/line3')
+    DigitalOut(name='MRR_TRIG_do', parent_device=NI6363, connection='port0/line4')
+    Shutter(name='MOT_SHUTTER_do', parent_device=NI6363, connection='port0/line5',
+            delay=(6e-3, 6e-3), open_state=1) #delays are a guess.
+    Shutter(name='MRR_SHUTTER_do', parent_device=NI6363, connection='port0/line6',
+            delay=(5.94e-3, 5.6e-3), open_state=1) #Delays measured and set 2026-FEB-26. See lab notebook for details.
     DigitalOut(name='LCR_do', parent_device=NI6363, connection='port0/line7')
 
     # Define analog outs on 6738
@@ -79,17 +83,24 @@ def ct():
         camera_attributes={
             'trigger': 'On', # On/Off
             'format': 'Mono8', # Mono8/Mono12
-            'exposure': 1.0, # 9 ms, using the wrapper property
+            'exposure': 100.0, # 9 ms, using the wrapper property
             'fps': 5.0,   # required by base class (will be skipped at runtime)
-            'gain': 1.0
+            'gain': 2.0
         },
         manual_mode_camera_attributes={ # BLACS preview mode
             "trigger": "Off",
             "format": "Mono8",
-            "exposure": 1.0,
+            "exposure": 100.0,
             "fps": 5.0,               # shown in BLACS, not applied to hardware
-            "gain": 1.0,
+            "gain": 2.0,
         },
+    )
+
+    bbd = BBD301(
+        name='bbd301',
+        parent_device=prawn.clocklines[0],
+        serial_number='103512594',  # your actual serial number
+        num_channels=1,
     )
 
 
