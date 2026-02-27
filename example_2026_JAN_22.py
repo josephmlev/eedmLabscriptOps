@@ -1,7 +1,8 @@
 import numpy as np
 from labscript import *
 
-from labscriptlib.prawnTesting_JL_2026_JAN_6.connection_table import ct
+#from labscriptlib.prawnTesting_JL_2026_JAN_6.connection_table import ct
+from labscriptlib.eedmLabscriptOps.connection_table import ct
 
 def switchToMotBeam():
     ao0.constant(t, 0)
