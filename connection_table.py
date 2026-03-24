@@ -42,8 +42,8 @@ def ct():
     # Define digital outs on 6363
     #make sure to define an even number of channels for Labscript to be happy
     DigitalOut(name='do6363_0', parent_device=NI6363, connection='port0/line0')
-    DigitalOut(name='do6363_1', parent_device=NI6363, connection='port0/line1')
-    DigitalOut(name='do6363_2', parent_device=NI6363, connection='port0/line2')
+    DigitalOut(name='MAIN_REL_JUMP_do', parent_device=NI6363, connection='port0/line1')
+    DigitalOut(name='REPUMP_REL_JUMP_do', parent_device=NI6363, connection='port0/line2')
     DigitalOut(name='MOT_COIL_do', parent_device=NI6363, connection='port0/line3')
     DigitalOut(name='MRR_TRIG_do', parent_device=NI6363, connection='port0/line4')
     Shutter(name='MOT_SHUTTER_do', parent_device=NI6363, connection='port0/line5',
@@ -57,8 +57,8 @@ def ct():
     AnalogOut(name='ao0', parent_device=NI6738, connection='ao0')
     AnalogOut(name='ao1', parent_device=NI6738, connection='ao1')
     AnalogOut(name='ao2', parent_device=NI6738, connection='ao2')
-    AnalogOut(name='ao3', parent_device=NI6738, connection='ao3')
-    AnalogOut(name='ao4', parent_device=NI6738, connection='ao4')
+    AnalogOut(name='MAIN_JUMP_AMP_ao', parent_device=NI6738, connection='ao3')
+    AnalogOut(name='REPUMP_JUMP_AMP_ao', parent_device=NI6738, connection='ao4')
     AnalogOut(name='ao5', parent_device=NI6738, connection='ao5')
     AnalogOut(name='ao6', parent_device=NI6738, connection='ao6')
     AnalogOut(name='ao7', parent_device=NI6738, connection='ao7')
@@ -83,16 +83,16 @@ def ct():
         camera_attributes={
             'trigger': 'On', # On/Off
             'format': 'Mono8', # Mono8/Mono12
-            'exposure': 100.0, # 9 ms, using the wrapper property
+            'exposure': 1.5, # 9 ms, using the wrapper property
             'fps': 5.0,   # required by base class (will be skipped at runtime)
-            'gain': 2.0
+            'gain': 11.0
         },
         manual_mode_camera_attributes={ # BLACS preview mode
             "trigger": "Off",
             "format": "Mono8",
-            "exposure": 100.0,
+            "exposure": 2.5,
             "fps": 5.0,               # shown in BLACS, not applied to hardware
-            "gain": 2.0,
+            "gain": 5.0,
         },
     )
 
@@ -107,4 +107,4 @@ def ct():
 if __name__ == '__main__':
     ct()
     start()
-    stop(1)
+    stop(0.001)
