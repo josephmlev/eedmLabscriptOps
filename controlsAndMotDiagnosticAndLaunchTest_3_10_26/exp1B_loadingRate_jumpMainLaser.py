@@ -39,7 +39,7 @@ if __name__ == "__main__":
     MOT_COIL_do.go_high(t)       # coils on for the whole shot
     MRR_TRIG_do.go_low(t)        # MRR not used
     MRR_SHUTTER_do.open(t)       # MRR shutter stays open throughout
-    do6363_0.go_low(t)           # trigger line low
+    do6363_0.go_high(t)           # trigger line low
     MAIN_REL_JUMP_do.go_high(t)  # start with main laser jumped off resonance
     REPUMP_REL_JUMP_do.go_low(t) # repump stays on resonance
     MAIN_JUMP_AMP_ao.constant(t, value=main_jump_V)  # set jump amplitude

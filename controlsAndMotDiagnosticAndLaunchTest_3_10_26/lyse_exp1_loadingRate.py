@@ -26,8 +26,8 @@ plt.rc('figure', titlesize=18)
 # ============================================================
 # ROI in pixel coordinates (row_start, row_end, col_start, col_end)
 #ROI = (275, 295, 348, 365) #from 2026 Mar 10
-ROI = (268, 285, 353, 366)
-
+#ROI = (268, 285, 353, 366) 2026 Mar 20
+ROI = (275, 300, 380, 395)
 # Image orientation / device name in HDF5
 ORIENTATION = 'my_ids_camera'
 

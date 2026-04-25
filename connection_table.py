@@ -41,9 +41,10 @@ def ct():
 
     # Define digital outs on 6363
     #make sure to define an even number of channels for Labscript to be happy
-    DigitalOut(name='do6363_0', parent_device=NI6363, connection='port0/line0')
+    Shutter(name='REPUMP_SHUTTER_do', parent_device=NI6363, connection='port0/line0',
+        delay=(5.94e-3, 5.6e-3), open_state=1) #Delays coppied from MRR, not directly tested!
     DigitalOut(name='MAIN_REL_JUMP_do', parent_device=NI6363, connection='port0/line1')
-    DigitalOut(name='REPUMP_REL_JUMP_do', parent_device=NI6363, connection='port0/line2')
+    DigitalOut(name='LCR_BOT_do', parent_device=NI6363, connection='port0/line2')
     DigitalOut(name='MOT_COIL_do', parent_device=NI6363, connection='port0/line3')
     DigitalOut(name='MRR_TRIG_do', parent_device=NI6363, connection='port0/line4')
     Shutter(name='MOT_SHUTTER_do', parent_device=NI6363, connection='port0/line5',
@@ -51,6 +52,10 @@ def ct():
     Shutter(name='MRR_SHUTTER_do', parent_device=NI6363, connection='port0/line6',
             delay=(5.94e-3, 5.6e-3), open_state=1) #Delays measured and set 2026-FEB-26. See lab notebook for details.
     DigitalOut(name='LCR_do', parent_device=NI6363, connection='port0/line7')
+
+    # Define analog outs on 6363. Using these as digital outs for now.
+    AnalogOut(name='LCR_HOR_ao', parent_device=NI6363, connection='ao0')
+    AnalogOut(name='LCR_TOP_ao', parent_device=NI6363, connection='ao1')
 
     # Define analog outs on 6738
     # Make sure to define an even number of channels for Labscript to be happy
@@ -83,16 +88,16 @@ def ct():
         camera_attributes={
             'trigger': 'On', # On/Off
             'format': 'Mono8', # Mono8/Mono12
-            'exposure': 1.5, # 9 ms, using the wrapper property
+            'exposure': 1, # 9 ms, using the wrapper property
             'fps': 5.0,   # required by base class (will be skipped at runtime)
-            'gain': 11.0
+            'gain': 0.0
         },
         manual_mode_camera_attributes={ # BLACS preview mode
             "trigger": "Off",
             "format": "Mono8",
             "exposure": 2.5,
             "fps": 5.0,               # shown in BLACS, not applied to hardware
-            "gain": 5.0,
+            "gain": 1.0,
         },
     )
 

@@ -29,7 +29,8 @@ if __name__ == "__main__":
     MOT_COIL_do.go_high(t)       # coils on for the whole shot
     MRR_TRIG_do.go_low(t)        # MRR not used
     MRR_SHUTTER_do.close(t)      # start with shutter closed
-    do6363_0.go_low(t)           # trigger line low
+    REPUMP_SHUTTER_do.go_high(t)  # trigger line low
+    LCR_do.go_high(t)             # LCR on for MRR beam
 
     t += 0.01  # 10 ms buffer
 
