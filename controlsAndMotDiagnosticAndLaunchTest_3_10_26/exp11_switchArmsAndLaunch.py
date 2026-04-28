@@ -169,15 +169,6 @@ if __name__ == "__main__":
     t += 0.01
 
     # ============================================================
-    # Trigger stage to start accelerating
-    # Do this early so it reaches speed during PGC + dark time
-    # ============================================================
-    add_time_marker(t-(v_stage/a_stage + 0.005), "Trigger MRR stage", verbose=True)
-    if MRR_TRIG_BOOL:
-        MRR_TRIG_do.go_high(t-(v_stage/a_stage + 0.0)) #trigger at time such that stage starts moving at t=0
-        MRR_TRIG_do.go_low(t-(v_stage/a_stage + 0.005) + 0.011)
-
-    # ============================================================
     # MOT coils off for molasses
     # ============================================================
     add_time_marker(t, "MOT coils off", verbose=True)
@@ -213,30 +204,46 @@ if __name__ == "__main__":
     MRR_SHUTTER_do.open(t)
 
     # ============================================================
+    # Trigger stage to start accelerating
+    # Do this early so it reaches speed during PGC + dark time
+    # ============================================================
+    print('v stage =', v_stage)
+    print('a stage =', a_stage)
+    print('v/a =', v_stage/a_stage)
+    add_time_marker(t-(v_stage/a_stage + 0.03), "Trigger MRR stage", verbose=True)
+    if MRR_TRIG_BOOL:
+        MRR_TRIG_do.go_high(t-(v_stage/a_stage + 0.03)) #trigger at time such that stage starts moving at t=0
+        MRR_TRIG_do.go_low(t-(v_stage/a_stage + 0.03) + 0.011)
+
+    # ============================================================
     # Wait for photodiode trigger confirming shutter is open
     # ============================================================
     add_time_marker(t, "Wait for shutter open trigger", verbose=True)
     wait("mrr_shutter_open", t, timeout=0.1)
-    LCR_BOT_do.go_high(t)#useing this as a scope trigger. Delete this
+    LCR_BOT_do.go_high(t)#using this as a scope trigger. Delete this
     LCR_BOT_do.go_low(t+0.1)
+
+    ai0.acquire(label='TOF_florescence', start_time = t, end_time =t+0.1)
 
     
     #============================================================
     #PGC in moving frame -- red shift on ~50 us after shutter open
     #============================================================
     MAIN_JUMP_AMP_ao.constant(t, -0.05)
-    
-    #t += 1000e-6 #works for drop
-    t += 1000e-6 
 
     my_ids_camera.expose(
-    t=t, name=f'molasses', frametype='atom',
+    t=t+0.001, name=f'molasses', frametype='atom',
     trigger_duration=1*ms)
+    
+    #t += 1000e-6 #works for drop
+    t += 0.001
+
+
 
     add_time_marker(t, "PGC in moving frame", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
     #t += 0.01 #works for drop
-    t+= 0.01
+    t+= 0.005
 
     
     #MOT_SHUTTER_do.close(t)
@@ -254,15 +261,15 @@ if __name__ == "__main__":
     MAIN_REL_JUMP_do.go_low(t)
     
     #jump probe to blue
-    t += 0.05
-    #MAIN_JUMP_AMP_ao.constant(t, -0.001)
     t += 0.001
-    #MAIN_REL_JUMP_do.go_high(t)
-
+    MAIN_JUMP_AMP_ao.constant(t, 0.001)
+    t += 0.001
+    MAIN_REL_JUMP_do.go_high(t)
+    '''
     t += t_camera_delay
-    #my_ids_camera.expose(
-    #t=t, name=f'molasses', frametype='atom',
-    #trigger_duration=1*ms)
+    my_ids_camera.expose(
+    t=t, name=f'molasses', frametype='atom',
+    trigger_duration=1*ms)'''
     '''
     # ============================================================
     # Molasses images
@@ -278,7 +285,7 @@ if __name__ == "__main__":
     # ============================================================
     # Cleanup -- return to MOT arm, normal state
     # ============================================================
-    t += 0.5
+    t += .2
     MAIN_REL_JUMP_do.go_low(t)
     #REPUMP_REL_JUMP_do.go_low(t)
     MOT_COIL_do.go_high(t)

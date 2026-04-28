@@ -36,7 +36,7 @@ def ct():
         parent_device           = prawn.clocklines[0],
         MAX_name=SLOT_6363,
         clock_terminal          = '/PXI1Slot2/PFI12',         # <-- empty string means "use internal/Onboard clock"
-        acquisition_rate=100.0
+        acquisition_rate=100e3
     )
 
     # Define digital outs on 6363
