@@ -26,7 +26,7 @@ def set_beam_path(t, mode):
         #MRR_SHUTTER_do.close(t)
         LCR_do.go_low(t)
         LCR_BOT_do.go_low(t)
-        LCR_HOR_ao.constant(t, 0.0)
+        #LCR_HOR_ao.constant(t, 0.0)
         LCR_TOP_ao.constant(t, 0.0)
     elif mode == 'MRR': #set LCR to V1 (high)
         #MOT_SHUTTER_do.close(t)
@@ -138,7 +138,9 @@ if __name__ == "__main__":
     MRR_TRIG_do.go_low(t)
     MAIN_JUMP_AMP_ao.constant(t, v_laser_jump_rel)
     set_beam_path(t, 'MOT')
-    MOT_SHUTTER_do.open(t)
+    MOT_SHUTTER_do.close(t)
+
+    LCR_HOR_ao.constant(t, 5.0)
     
     #MOT_SHUTTER_do.open(t)
     #MRR_SHUTTER_do.open(t)
@@ -150,6 +152,7 @@ if __name__ == "__main__":
     t += 0.25
     #MOT_SHUTTER_do.open(t)
     MOT_COIL_do.go_high(t)
+    MOT_SHUTTER_do.open(t)
 
 
     # ============================================================
@@ -189,12 +192,13 @@ if __name__ == "__main__":
     add_time_marker(t, "Close MOT shutter -- dark time", verbose=True)
     MOT_SHUTTER_do.close(t)
 
-
+    t += 0.001
     #REPUMP_SHUTTER_do.close(t)
     MAIN_REL_JUMP_do.go_low(t+0.002)
 
     add_time_marker(t, "Switch to MRR arm", verbose=True)
     set_beam_path(t, 'MRR')
+   #LCR_TOP_ao.constant(t, 5.0)
 
     t += t_dark 
     # ============================================================
@@ -220,8 +224,8 @@ if __name__ == "__main__":
     # ============================================================
     add_time_marker(t, "Wait for shutter open trigger", verbose=True)
     wait("mrr_shutter_open", t, timeout=0.1)
-    LCR_BOT_do.go_high(t)#using this as a scope trigger. Delete this
-    LCR_BOT_do.go_low(t+0.1)
+    scope_trig_do.go_high(t)#using this as a scope trigger. Delete this
+    scope_trig_do.go_low(t+0.1)
 
     ai0.acquire(label='TOF_florescence', start_time = t, end_time =t+0.1)
 
@@ -229,31 +233,28 @@ if __name__ == "__main__":
     #============================================================
     #PGC in moving frame -- red shift on ~50 us after shutter open
     #============================================================
-    MAIN_JUMP_AMP_ao.constant(t, -0.05)
+    
+    MAIN_JUMP_AMP_ao.constant(t, -2)
 
     my_ids_camera.expose(
-    t=t+0.001, name=f'molasses', frametype='atom',
+    t=t+0.002, name=f'molasses', frametype='atom',
     trigger_duration=1*ms)
+
     
     #t += 1000e-6 #works for drop
-    t += 0.001
+    t += 0.003
+    LCR_HOR_ao.constant(t-0.0045, 0.0)#using as MRR shutter 2 ttl
+
+
 
 
 
     add_time_marker(t, "PGC in moving frame", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
+    #MAIN_JUMP_AMP_ao.ramp(t, 0.003, 0, -0.05, 1e5)
     #t += 0.01 #works for drop
-    t+= 0.005
+    t+= 0.003
 
-    
-    #MOT_SHUTTER_do.close(t)
-    #MRR_SHUTTER_do.close(t)
-    #LCR_BOT_do.go_high(t)#useing this as a scope trigger. Delete this
-    #LCR_BOT_do.go_low(t+0.1)
-
-
-    
-    #REPUMP_SHUTTER_do.close(t)
 
     #============================================================
      #Jump back on resonance for imaging
