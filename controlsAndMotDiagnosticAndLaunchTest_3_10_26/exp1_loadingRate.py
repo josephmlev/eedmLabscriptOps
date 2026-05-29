@@ -29,8 +29,9 @@ if __name__ == "__main__":
     MOT_COIL_do.go_high(t)       # coils on for the whole shot
     MRR_TRIG_do.go_low(t)        # MRR not used
     MRR_SHUTTER_do.close(t)      # start with shutter closed
+    MOT_SHUTTER_do.close(t)     # start with shutter closed
     REPUMP_SHUTTER_do.go_high(t)  # trigger line low
-    LCR_do.go_high(t)             # LCR on for MRR beam
+    LCR_do.go_low(t)             # LCR on for MRR beam
 
     t += 0.01  # 10 ms buffer
 
@@ -57,6 +58,7 @@ if __name__ == "__main__":
     # but we wait to be sure. Coils stay on — doesn't matter with
     # no light.
     # ============================================================
+
     add_time_marker(t, "Waiting for MOT to disperse", verbose=True)
     t += disperse_time
 
@@ -72,13 +74,13 @@ if __name__ == "__main__":
         frametype='atom',
         trigger_duration=1*ms
     )
-    t += 0.01  # 10 ms for camera refresh
+    t += 0.025  # 10 ms for camera refresh
 
     # ============================================================
     # Open shutter and start taking images as MOT loads
     # ============================================================
     add_time_marker(t, "Open shutter, begin loading", verbose=True)
-    MRR_SHUTTER_do.open(t)
+    MOT_SHUTTER_do.open(t)
     t+=0.001 # small delay to ensure shutter is open before first image
     # ============================================================
     # Take images at regular intervals during loading
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     # fluorescence for atom number comparisons in later experiments.
     # ============================================================
     add_time_marker(t, "Steady-state reference", verbose=True)
-    t += 1.0  # extra second to make sure we're at steady state
+    t += 4.0  # extra second to make sure we're at steady state
     my_ids_camera.expose(
         t=t,
         name='steady_state',
@@ -110,9 +112,9 @@ if __name__ == "__main__":
     # ============================================================
     # Cleanup: leave everything in a good state for next shot
     # ============================================================
-    t += 0.1
+    t += 2
     MOT_COIL_do.go_high(t)
-    MRR_SHUTTER_do.open(t)
+    MOT_SHUTTER_do.open(t)
 
     t += 0.01
     stop(t)

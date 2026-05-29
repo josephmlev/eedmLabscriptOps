@@ -16,7 +16,7 @@ plt.rc('figure', titlesize=18)
 
 ORIENTATION = 'my_ids_camera'
 ROI = (510, 565, 780, 810)
-gain = 14
+gain = 22
 
 shot_file = os.path.basename(lyse.path)
 

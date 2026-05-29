@@ -27,13 +27,16 @@ plt.rc('figure', titlesize=18)
 # ROI in pixel coordinates (row_start, row_end, col_start, col_end)
 #ROI = (275, 295, 348, 365) #from 2026 Mar 10
 #ROI = (268, 285, 353, 366) 2026 Mar 20
-ROI = (275, 300, 380, 395)
+ROI = (565, 610, 760, 800)
+DISPLAY_GAIN = 1  # display-only multiplier for images (script-side)
 # Image orientation / device name in HDF5
 ORIENTATION = 'my_ids_camera'
 
 # How many loading snapshots to show (evenly spaced from the series)
 N_SNAPSHOTS = 100
 
+n_roi_pix = (ROI[1] - ROI[0]) * (ROI[3] - ROI[2])
+print(f"ROI total pixels: {n_roi_pix}")
 # ============================================================
 # Model
 # ============================================================
@@ -49,7 +52,17 @@ run = lyse.Run(lyse.path)
 
 with h5py.File(lyse.path, 'r') as f:
     IMAGE_INTERVAL = float(f['globals'].attrs['image_interval'])
-    image_group = f['images'][ORIENTATION]  
+    # Camera settings from globals
+    try:
+        EXPOSURE_TIME = float(f['globals'].attrs['exposure_time'])
+    except (KeyError, ValueError):
+        EXPOSURE_TIME = None
+    try:
+        CAMERA_GAIN = float(f['globals'].attrs['gain'])
+    except (KeyError, ValueError):
+        CAMERA_GAIN = None
+
+    image_group = f['images'][ORIENTATION]
 
     # Background
     bg = np.array(image_group['background']['atom'], dtype=float)
@@ -135,7 +148,22 @@ else:
 # ============================================================
 n_image_panels = 2 + len(snap_indices)  # background + snapshots + steady state
 fig = plt.figure(figsize=(14, 8))
-fig.suptitle(shot_file.replace('.h5', ''), fontsize=18)
+
+# Build a title that includes camera settings
+title_parts = [shot_file.replace('.h5', '')]
+cam_bits = []
+if EXPOSURE_TIME is not None:
+    cam_bits.append(f'exposure_time = {EXPOSURE_TIME*1000:.3f} ms')
+else:
+    cam_bits.append('exposure_time = N/A')
+if CAMERA_GAIN is not None:
+    cam_bits.append(f'camera gain = {CAMERA_GAIN:g}')
+else:
+    cam_bits.append('camera gain = N/A')
+cam_bits.append(f'display gain = {DISPLAY_GAIN:g}')
+cam_bits.append(f'ROI pixels = {n_roi_pix}')
+title_parts.append('   |   '.join(cam_bits))
+fig.suptitle('\n'.join(title_parts), fontsize=16)
 
 # Use gridspec: top row for images, bottom row for the loading curve
 gs = fig.add_gridspec(2, n_image_panels, height_ratios=[1, 1.2], hspace=0.35, wspace=0.3)
@@ -146,7 +174,7 @@ vmin = min(img.min() for img in all_imgs)
 vmax = max(img.max() for img in all_imgs)
 
 #zoom into a pad region around the ROI
-pad = 10
+pad = 100
 plot_r0 = max(0, r0 - pad)
 plot_r1 = min(ss_img.shape[0], r1 + pad)
 plot_c0 = max(0, c0 - pad)
@@ -155,7 +183,7 @@ plot_c1 = min(ss_img.shape[1], c1 + pad)
 # --- Top row: images ---
 # Background
 ax = fig.add_subplot(gs[0, 0])
-ax.imshow(bg, vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
+ax.imshow(bg*DISPLAY_GAIN, vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
 ax.set_xlim(plot_c0, plot_c1)
 ax.set_ylim(plot_r0, plot_r1)
 ax.set_title('Background')
@@ -164,7 +192,7 @@ ax.axis('off')
 # Loading snapshots
 for panel_i, img_i in enumerate(snap_indices):
     ax = fig.add_subplot(gs[0, panel_i + 1])
-    ax.imshow(loading_imgs[img_i], vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
+    ax.imshow(loading_imgs[img_i]*DISPLAY_GAIN, vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
     ax.set_xlim(plot_c0, plot_c1)
     ax.set_ylim(plot_r0, plot_r1)
     ax.set_title(f't = {img_i * IMAGE_INTERVAL:.2f} s')
@@ -172,7 +200,7 @@ for panel_i, img_i in enumerate(snap_indices):
 
 # Steady state with ROI box
 ax_ss = fig.add_subplot(gs[0, -1])
-ax_ss.imshow(ss_img, vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
+ax_ss.imshow(ss_img*DISPLAY_GAIN, vmin=vmin, vmax=vmax, cmap='inferno', origin='lower')
 ax_ss.set_xlim(plot_c0, plot_c1)
 ax_ss.set_ylim(plot_r0, plot_r1)
 roi_rect = Rectangle(
@@ -180,7 +208,6 @@ roi_rect = Rectangle(
     linewidth=.5, edgecolor='cyan', facecolor='none', linestyle='--'
 )
 ax_ss.add_patch(roi_rect)
-#ax_ss.set_title('Steady state')
 roi_data = ss_img[r0:r1, c0:c1]
 ax_ss.set_title(f'Steady state\nROI min:{roi_data.min():.0f} max:{roi_data.max():.0f} mean:{roi_data.mean():.1f}')
 ax_ss.axis('off')
