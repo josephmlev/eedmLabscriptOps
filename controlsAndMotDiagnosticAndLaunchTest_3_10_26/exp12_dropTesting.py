@@ -108,26 +108,9 @@ if __name__ == "__main__":
     bbd301.set_velocity(1, v_stage)
     bbd301.set_acceleration(1, a_stage)
     bbd301.set_move_distance(1, xf_stage)
-    bbd301.set_reset_position(1, 125)
+    bbd301.set_reset_position(1, 150)
 
-    if 1: #print stage config for debugging
-        print(f"Stage config:")
-        print(f"  xi_stage:    {xi_stage} mm")
-        print(f"  xf_stage:    {xf_stage} mm")
-        print(f"  v_stage:     {v_stage} mm/s")
-        print(f"  a_stage:     {a_stage} mm/s^2")
-        print(f"  t_accel:     {t_accel*1000:.3f} ms")
-        print(f"  d_accel:     {d_accel:.4f} mm")
-        print(f"  stage_delay: {MRR_stage_delay*1000:.1f} ms")
-        print(f"  t_stage_ready: {(t_accel + MRR_stage_delay)*1000:.3f} ms")
-        t_move_total = xf_stage / v_stage  # approximate total move time at constant v
-        print(f"  t_move_total (approx): {t_move_total*1000:.1f} ms")
-        t_experiment = t_load + 0.01 + MOT_coil_delay + t_redshift + max(t_dark, t_accel + MRR_stage_delay) + 0.005 + 0.001 + 50e-6 + t_redshift_launch + 0.001 + 4*t_hold + 0.01 + 2
-        print(f"  t_experiment (approx): {t_experiment*1000:.1f} ms")
-        if t_move_total > t_experiment:
-            print(f"  WARNING: stage may still be moving at end of experiment!")
-        else:
-            print(f"  OK: stage should finish before experiment ends.")
+ 
 
     # ============================================================
     # Initialize outputs -- MOT arm, everything normal
@@ -219,20 +202,7 @@ if __name__ == "__main__":
 
     MRR_SHUTTER_2_do.open(t)
 
-    # ============================================================
-    # Trigger stage to start accelerating
-    # Do this early so it reaches speed during PGC + dark time
-    # ============================================================
-    print('v stage =', v_stage)
-    print('a stage =', a_stage)
-    print('v/a =', v_stage/a_stage)
-    add_time_marker(t-(0.13), "Trigger MRR stage", verbose=True)
-    if MRR_TRIG_BOOL:
-        MRR_TRIG_do.go_high(t-(0.13)) #trigger at time such that stage starts moving at t=0
-        MRR_TRIG_do.go_low(t-(0.13) + 0.011)
-        #scope_trig_do.go_high(t-(v_stage/a_stage + 0.05))#using this as a scope trigger. Delete this
-        #scope_trig_do.go_low(t-(v_stage/a_stage + 0.05) + 0.011)
-        #ai1.acquire(label='MRR_position', start_time = t-(v_stage/a_stage + 0.05), end_time =t-(v_stage/a_stage + 0.05)+0.2)
+
 
     # ============================================================
     # Wait for photodiode trigger confirming shutter is open
@@ -240,10 +210,7 @@ if __name__ == "__main__":
     add_time_marker(t, "Wait for shutter open trigger", verbose=True)
     wait("mrr_shutter_open", t, timeout=0.1)
     
-    scope_trig_do.go_high(t)
-    scope_trig_do.go_low(t+0.02)
-    t_trig = t
-    
+
     #ai0.acquire(label='TOF_florescence', start_time = t, end_time =t+0.1)
 
     
@@ -259,34 +226,37 @@ if __name__ == "__main__":
 
     
     #t += 1000e-6 #works for drop
-    t += 0.0035
+    t += 0.001
 
 
-    add_time_marker(t, "PGC in moving frame", verbose=True)
+    add_time_marker(t, "PGC in 'moving' frame", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
-    MAIN_JUMP_AMP_ao.ramp(t-0.0005, 0.005, 0, -.1, 1e5) #(t, duration, initial, final, samplerate)
+    #MAIN_JUMP_AMP_ao.ramp(t-0.0005, 0.002, 0, -.15, 1e5)
     #t += 0.01 #works for drop
-    t+= 0.003
+    t+= 0.01
     MRR_SHUTTER_do.close(t)
-    #REPUMP_SHUTTER_do.close(t+0.005) 
+
+    scope_trig_do.go_high(t)
+    scope_trig_do.go_low(t+0.02)
+    t_trig = t
+
     drop_time = t  # atoms begin free fall here
     compiler.shot_properties['drop_time'] = drop_time
-    photon_counter.acquire(t=drop_time, number_of_counts=int(.2e5)) #bins are 10us, hard coded
-
+    ai0.acquire(label='TOF_florescence', start_time = drop_time + 0.12, end_time =drop_time+0.16)
 
 
     #============================================================
      #Jump back on resonance for imaging
     #============================================================
-    t += 0.002
-    MAIN_REL_JUMP_do.go_low(t)
+    MAIN_REL_JUMP_do.go_low(t+0.001)
     
     #jump probe to blue
     t += 0.001
-    MAIN_JUMP_AMP_ao.constant(t, 0.002)
-    t += 0.110
-    #MAIN_REL_JUMP_do.go_high(t)
-    MAIN_REL_JUMP_do.go_low(t+0.03)
+    MAIN_JUMP_AMP_ao.constant(t, 0.01)
+    t += 0.11
+    
+    MAIN_REL_JUMP_do.go_high(t)
+    MAIN_REL_JUMP_do.go_low(t+0.05)
     
     #REPUMP_SHUTTER_do.close(t)
     '''

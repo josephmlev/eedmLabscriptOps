@@ -31,7 +31,7 @@ if __name__ == "__main__":
     MRR_SHUTTER_do.close(t)      # start with shutter closed
     MOT_SHUTTER_do.close(t)     # start with shutter closed
     REPUMP_SHUTTER_do.go_high(t)  # trigger line low
-    LCR_do.go_low(t)             # LCR on for MRR beam
+    LCR_do.go_high(t)             # LCR on for MOT beam
 
     t += 0.01  # 10 ms buffer
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         frametype='atom',
         trigger_duration=1*ms
     )
-    t += 0.025  # 10 ms for camera refresh
+    t += 0.025  # 25 ms for camera refresh
 
     # ============================================================
     # Open shutter and start taking images as MOT loads

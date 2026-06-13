@@ -27,7 +27,7 @@ plt.rc('figure', titlesize=18)
 # ROI in pixel coordinates (row_start, row_end, col_start, col_end)
 #ROI = (275, 295, 348, 365) #from 2026 Mar 10
 #ROI = (268, 285, 353, 366) 2026 Mar 20
-ROI = (565, 610, 760, 800)
+ROI = (555, 590, 780, 800)
 DISPLAY_GAIN = 1  # display-only multiplier for images (script-side)
 # Image orientation / device name in HDF5
 ORIENTATION = 'my_ids_camera'
@@ -153,7 +153,7 @@ fig = plt.figure(figsize=(14, 8))
 title_parts = [shot_file.replace('.h5', '')]
 cam_bits = []
 if EXPOSURE_TIME is not None:
-    cam_bits.append(f'exposure_time = {EXPOSURE_TIME*1000:.3f} ms')
+    cam_bits.append(f'exposure_time = {EXPOSURE_TIME:.3f} ms')
 else:
     cam_bits.append('exposure_time = N/A')
 if CAMERA_GAIN is not None:

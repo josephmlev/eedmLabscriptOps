@@ -7,6 +7,7 @@ from labscript_devices.NI_DAQmx.models.NI_PXIe_6738 import NI_PXIe_6738
 from labscript_devices.NI_DAQmx.models.NI_PXIe_6363 import NI_PXIe_6363
 from labscript_devices.IMAQdxCamera.labscript_devices import IMAQdxCamera
 from labscript_devices.PrawnBlaster.labscript_devices import PrawnBlaster
+from user_devices.NI_DAQmx_PhotonCounter.labscript_devices import NI_DAQmxPhotonCounter
 
 #from labscript_devices import IDS_PeakCamera
 from user_devices.IDS_PeakCamera.labscript_devices import IDS_PeakCamera
@@ -53,7 +54,8 @@ def ct():
             delay=(5.94e-3, 5.6e-3), open_state=1) #Delays measured and set 2026-FEB-26. See lab notebook for details.
     DigitalOut(name='LCR_do', parent_device=NI6363, connection='port0/line7')
     DigitalOut(name='scope_trig_do', parent_device=NI6363, connection='port0/line8')
-    DigitalOut(name='dummy_do', parent_device=NI6363, connection='port0/line9')
+    Shutter(name='MRR_SHUTTER_2_do', parent_device=NI6363, connection='port0/line9',
+            delay=(5.47e-3, 7.08e-3), open_state=1) #Delays measured and set 2026-MAY-04. See lab notebook for details.
 
     # Define analog outs on 6363. Using these as digital outs for now.
     AnalogOut(name='LCR_HOR_ao', parent_device=NI6363, connection='ao0')
@@ -90,9 +92,9 @@ def ct():
         camera_attributes={
             'trigger': 'On', # On/Off
             'format': 'Mono8', # Mono8/Mono12
-            'exposure': 1, # 9 ms, using the wrapper property
+            'exposure': 1, # global property exposure_time overrides this, but we need to set it here too for the BLACS preview mode
             'fps': 5.0,   # required by base class (will be skipped at runtime)
-            'gain': 0.0
+            'gain': 0.0 #gloabal gain overides this, but we need to set it here too for the BLACS preview mode
         },
         manual_mode_camera_attributes={ # BLACS preview mode
             "trigger": "Off",
@@ -109,6 +111,19 @@ def ct():
         serial_number='103512594',  # your actual serial number
         num_channels=1,
     )
+
+    photon_counter = NI_DAQmxPhotonCounter(
+        name='photon_counter',
+        parent_device=prawn.clocklines[0],
+        #connection='internal',
+        MAX_name=SLOT_6363,
+        counter_channel='ctr3',
+        photon_input_terminal=f'/{SLOT_6363}/PFI5',  # wire your photon source here
+        sample_clock_terminal='',  # None = internal clock (matches DummyPseudoclock)
+        counter_sample_rate=100000,
+        start_trigger_terminal=f'/{SLOT_6363}/PFI12'
+    )
+
 
 
 if __name__ == '__main__':
