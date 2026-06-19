@@ -8,6 +8,13 @@ from scipy.optimize import curve_fit
 import lyse
 import h5py
 
+plt.rc('font', family='serif')
+plt.rc('xtick', labelsize=14)
+plt.rc('ytick', labelsize=14)
+plt.rc('axes', titlesize=16, labelsize=16)
+plt.rc('legend', fontsize=22)
+plt.rc('figure', titlesize=18)
+
 
 def pos_gaussian(t, offset, amp, t0, sigma):
     return offset + amp * np.exp(-(t - t0) ** 2 / (2 * sigma ** 2))
@@ -34,17 +41,18 @@ except Exception:
 # drop_time is an HDF5 attribute on the 'shot_properties' group -> read with h5py
 with h5py.File(lyse.path, 'r') as f:
     try:
-        drop_time = f['shot_properties'].attrs['drop_time']
+        t_PMT_delay = f['globals'].attrs['t_PMT_delay']
     except (KeyError, AttributeError):
-        print("No drop_time saved in this shot. Skipping.")
+        print("No t_PMT_delay global in this shot. Skipping.")
         raise SystemExit
+# PMT delay is an estimate of the time between drop and when the PMT sees the fluorescence
 
 # --- Cumulative counts -> count rate ---------------------------------------
 # np.diff shortens the array by one, so use bin midpoints for the time axis.
 dt = np.diff(t_raw)
 rate = np.diff(cum_counts) / dt          # counts per second in each interval
 t_mid = 0.5 * (t_raw[1:] + t_raw[:-1])   # midpoint of each interval
-t = t_mid                  # time since drop
+t = t_mid + t_PMT_delay                  # time since drop
 values = rate
  
 # --- Initial guesses (positive peak) ---------------------------------------
@@ -61,6 +69,14 @@ try:
     offset, amp, t0, sigma = popt
     sigma = abs(sigma)
     fit_ok = True
+
+    residuals = values - pos_gaussian(t, *popt)
+    resid_std = np.std(residuals, ddof=len(popt))   # ddof = number of fit params
+    snr = amp / resid_std
+    print(f"  residual std = {resid_std:.4g}")
+    print(f"  SNR (B/std)  = {snr:.4g}")
+    run.save_result('pmt_resid_std', resid_std)
+    run.save_result('pmt_snr', snr)
 
     print("Positive Gaussian fit (PMT):")
     print(f"  offset = {fmt(offset, perr[0])}")
@@ -85,7 +101,7 @@ except RuntimeError:
 
 # --- Plot ------------------------------------------------------------------
 plt.figure(figsize=(8, 5))
-plt.plot(t, values, '.', label='data')
+plt.plot(t, values, '.')
 
 if fit_ok:
     t_fit = np.linspace(t.min(), t.max(), 1000)
@@ -95,10 +111,12 @@ if fit_ok:
         f"$B$ = {amp:.4g} cts/s\n"
         f"$t_0$ = {t0 * 1000:.4g} ms\n"
         f"$\\sigma$ = {sigma * 1000:.4g} ms\n"
+        f"SNR = {snr:.3g}\n"
+        f"Cts. - bkg = {integrated_counts:.4g} cts\n"
     )
     plt.plot(t_fit, pos_gaussian(t_fit, *popt), '-', label=fit_label)
 
 plt.xlabel('Time since drop (s)')
 plt.ylabel('PMT count rate (1/s)')
-plt.legend(loc='upper right', fontsize=13)
+plt.legend(loc='upper right')
 plt.tight_layout()

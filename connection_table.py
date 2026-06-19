@@ -56,6 +56,10 @@ def ct():
     DigitalOut(name='scope_trig_do', parent_device=NI6363, connection='port0/line8')
     Shutter(name='MRR_SHUTTER_2_do', parent_device=NI6363, connection='port0/line9',
             delay=(5.47e-3, 7.08e-3), open_state=1) #Delays measured and set 2026-MAY-04. See lab notebook for details.
+    Shutter(name='PROBE_SHUTTER_do', parent_device=NI6363, connection='port0/line10',
+            delay=(6e-3, 6e-3), open_state=1) #Delays are a guess
+
+    DigitalOut(name='dummy_do', parent_device=NI6363, connection='port0/line28')    
 
     # Define analog outs on 6363. Using these as digital outs for now.
     AnalogOut(name='LCR_HOR_ao', parent_device=NI6363, connection='ao0')

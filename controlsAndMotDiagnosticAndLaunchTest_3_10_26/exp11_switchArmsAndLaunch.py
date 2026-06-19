@@ -108,7 +108,7 @@ if __name__ == "__main__":
     bbd301.set_velocity(1, v_stage)
     bbd301.set_acceleration(1, a_stage)
     bbd301.set_move_distance(1, xf_stage)
-    bbd301.set_reset_position(1, 125)
+    bbd301.set_reset_position(1, MRR_START_POS)
 
     if 1: #print stage config for debugging
         print(f"Stage config:")
@@ -143,6 +143,7 @@ if __name__ == "__main__":
     MOT_SHUTTER_do.close(t)
     MRR_SHUTTER_2_do.close(t)
     MRR_SHUTTER_do.open(t)
+    PROBE_SHUTTER_do.close(t)
     
 
     LCR_HOR_ao.constant(t, 5.0)
@@ -226,10 +227,10 @@ if __name__ == "__main__":
     print('v stage =', v_stage)
     print('a stage =', a_stage)
     print('v/a =', v_stage/a_stage)
-    add_time_marker(t-(0.13), "Trigger MRR stage", verbose=True)
+    add_time_marker(t-(MRR_TRIG_DELAY), "Trigger MRR stage", verbose=True)
     if MRR_TRIG_BOOL:
-        MRR_TRIG_do.go_high(t-(0.13)) #trigger at time such that stage starts moving at t=0
-        MRR_TRIG_do.go_low(t-(0.13) + 0.011)
+        MRR_TRIG_do.go_high(t-(MRR_TRIG_DELAY)) #trigger at time such that stage starts moving at t=0
+        MRR_TRIG_do.go_low(t-(MRR_TRIG_DELAY) + 0.011)
         #scope_trig_do.go_high(t-(v_stage/a_stage + 0.05))#using this as a scope trigger. Delete this
         #scope_trig_do.go_low(t-(v_stage/a_stage + 0.05) + 0.011)
         #ai1.acquire(label='MRR_position', start_time = t-(v_stage/a_stage + 0.05), end_time =t-(v_stage/a_stage + 0.05)+0.2)
@@ -240,18 +241,14 @@ if __name__ == "__main__":
     add_time_marker(t, "Wait for shutter open trigger", verbose=True)
     wait("mrr_shutter_open", t, timeout=0.1)
     
-    scope_trig_do.go_high(t)
-    scope_trig_do.go_low(t+0.02)
-    t_trig = t
     
-    #ai0.acquire(label='TOF_florescence', start_time = t, end_time =t+0.1)
 
     
     #============================================================
     #PGC in moving frame -- red shift on ~50 us after shutter open
     #============================================================
     
-    MAIN_JUMP_AMP_ao.constant(t, -0.05)
+    #MAIN_JUMP_AMP_ao.constant(t, -0.1)
 
     my_ids_camera.expose(
     t=t+0.0005, name=f'molasses', frametype='atom',
@@ -264,14 +261,19 @@ if __name__ == "__main__":
 
     add_time_marker(t, "PGC in moving frame", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
-    MAIN_JUMP_AMP_ao.ramp(t-0.0005, 0.005, 0, -.1, 1e5) #(t, duration, initial, final, samplerate)
+    MAIN_JUMP_AMP_ao.ramp(t-0.000, 0.005, -0.0, -.3, 1e5) #(t, duration, initial, final, samplerate)
     #t += 0.01 #works for drop
-    t+= 0.003
+    t+= 0.0035
     MRR_SHUTTER_do.close(t)
-    #REPUMP_SHUTTER_do.close(t+0.005) 
+    REPUMP_SHUTTER_do.close(t+0.01) 
     drop_time = t  # atoms begin free fall here
     compiler.shot_properties['drop_time'] = drop_time
-    photon_counter.acquire(t=drop_time, number_of_counts=int(.2e5)) #bins are 10us, hard coded
+    photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.1e5)) #bins are 10us, hard coded
+    #ai0.acquire(label='TOF_florescence', start_time = drop_time, end_time =t+0.2)
+    
+    scope_trig_do.go_high(t)
+    scope_trig_do.go_low(t+0.02)
+    t_trig = t
 
 
 
@@ -284,11 +286,14 @@ if __name__ == "__main__":
     #jump probe to blue
     t += 0.001
     MAIN_JUMP_AMP_ao.constant(t, 0.002)
-    t += 0.110
-    #MAIN_REL_JUMP_do.go_high(t)
-    MAIN_REL_JUMP_do.go_low(t+0.03)
+    t += t_PMT_delay-0.005
     
-    #REPUMP_SHUTTER_do.close(t)
+    REPUMP_SHUTTER_do.open(t)
+    PROBE_SHUTTER_do.open(t)
+
+    t += 0.045
+    MAIN_REL_JUMP_do.go_high(t)
+    MAIN_REL_JUMP_do.go_low(t+0.03)
     '''
     t += t_camera_delay
     my_ids_camera.expose(
