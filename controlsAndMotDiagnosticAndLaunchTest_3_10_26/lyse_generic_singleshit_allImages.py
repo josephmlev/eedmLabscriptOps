@@ -15,8 +15,8 @@ plt.rc('legend', fontsize=14)
 plt.rc('figure', titlesize=18)
 
 ORIENTATION = 'my_ids_camera'
-ROI = (510, 565, 780, 810)
-gain = 22
+ROI = (560, 610, 780, 810)
+gain = 10
 
 shot_file = os.path.basename(lyse.path)
 
@@ -65,7 +65,8 @@ else:
     ncols = min(5, n)
     nrows = int(np.ceil(n / ncols))
 
-    pad = 100
+    pad = 20
+
 
     plot_r0 = max(0, r0 - pad)
     plot_r1 = min(images[0].shape[0], r1 + pad)

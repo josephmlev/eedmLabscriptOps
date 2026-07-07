@@ -84,8 +84,8 @@ def ct():
     #do0 = DigitalOut('do0', ao6738, 'port0/line1')
     DigitalOut('do1_dummy', NI6738, 'port0/line0')  # dummy to make even number of digital lines
 
-
-    cam = IDS_PeakCamera(
+    # cam_serial_number2 = '4102766024' #sn yellow 4103389953 blue 4108596607 red 4108596608 green 4102766024
+    cam = IDS_PeakCamera( #blue
         name='my_ids_camera',
         parent_device=NI6738,
         connection='port0/line1', 
@@ -95,10 +95,10 @@ def ct():
         trigger_duration=0.05,
         camera_attributes={
             'trigger': 'On', # On/Off
-            'format': 'Mono8', # Mono8/Mono12
+            'format': 'Mono12', # Mono8/Mono12
             'exposure': 1, # global property exposure_time overrides this, but we need to set it here too for the BLACS preview mode
             'fps': 5.0,   # required by base class (will be skipped at runtime)
-            'gain': 0.0 #gloabal gain overides this, but we need to set it here too for the BLACS preview mode
+            'gain': 0.0 #gloabal gain overides this, but we need to set it here too for the BLACS preview mode,
         },
         manual_mode_camera_attributes={ # BLACS preview mode
             "trigger": "Off",
@@ -108,6 +108,36 @@ def ct():
             "gain": 1.0,
         },
     )
+
+
+    '''
+    cam = IDS_PeakCamera( #green
+         name=f'my_ids_camera',
+         parent_device=NI6738, 
+         connection='port0/line1', #cheat: fake connection to make labscript happy
+         serial_number=4102766024, 
+         minimum_recovery_time=0.005, # Override the default
+         trigger_edge_type='rising', 
+         trigger_duration=100*ms,
+         camera_attributes={
+             'trigger': 'On', # On/Off
+             'format': 'Mono8', # Mono8/Mono12
+             'exposure': 9.0, # 9 ms, using the wrapper property
+             'fps': 5.0,   # required by base class (will be skipped at runtime)
+             'gain': 1.0,
+             'roi': [0,0,1440,1080],
+             'binning': [1,1]
+         },
+         manual_mode_camera_attributes={ # BLACS preview mode
+             "trigger": "Off",
+             "format": "Mono8",
+             "exposure": 20.0,
+             "fps": 5.0,               # shown in BLACS, not applied to hardware
+             "gain": 1.0,
+             "roi": [0,0,1440,1080],
+             "binning": [1,1]
+         },
+     )'''
 
     bbd = BBD301(
         name='bbd301',

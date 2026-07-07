@@ -9,10 +9,10 @@ import lyse
 import h5py
 
 plt.rc('font', family='serif')
-plt.rc('xtick', labelsize=14)
-plt.rc('ytick', labelsize=14)
+plt.rc('xtick', labelsize=22)
+plt.rc('ytick', labelsize=22)
 plt.rc('axes', titlesize=16, labelsize=16)
-plt.rc('legend', fontsize=22)
+plt.rc('legend', fontsize=26)
 plt.rc('figure', titlesize=18)
 
 
@@ -119,4 +119,5 @@ if fit_ok:
 plt.xlabel('Time since drop (s)')
 plt.ylabel('PMT count rate (1/s)')
 plt.legend(loc='upper right')
+plt.grid(True)
 plt.tight_layout()

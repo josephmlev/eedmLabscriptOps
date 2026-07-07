@@ -93,7 +93,6 @@ if __name__ == "__main__":
         xf_stage = 1
 
     # --- Stage kinematics ---
-    MRR_stage_delay = 6e-3
     MRR_shutter_min_time = 0.012
     MOT_coil_delay = 0.003
 
@@ -118,11 +117,11 @@ if __name__ == "__main__":
         print(f"  a_stage:     {a_stage} mm/s^2")
         print(f"  t_accel:     {t_accel*1000:.3f} ms")
         print(f"  d_accel:     {d_accel:.4f} mm")
-        print(f"  stage_delay: {MRR_stage_delay*1000:.1f} ms")
-        print(f"  t_stage_ready: {(t_accel + MRR_stage_delay)*1000:.3f} ms")
+        print(f"  stage_delay: {MRR_TRIG_DELAY*1000:.1f} ms")
+        print(f"  t_stage_ready: {(t_accel + MRR_TRIG_DELAY)*1000:.3f} ms")
         t_move_total = xf_stage / v_stage  # approximate total move time at constant v
         print(f"  t_move_total (approx): {t_move_total*1000:.1f} ms")
-        t_experiment = t_load + 0.01 + MOT_coil_delay + t_redshift + max(t_dark, t_accel + MRR_stage_delay) + 0.005 + 0.001 + 50e-6 + t_redshift_launch + 0.001 + 4*t_hold + 0.01 + 2
+        t_experiment = t_load + 0.01 + MOT_coil_delay + t_redshift + max(t_dark, t_accel + MRR_TRIG_DELAY) + 0.005 + 0.001 + 50e-6 + t_redshift_launch + 0.001 + 4*t_hold + 0.01 + 2
         print(f"  t_experiment (approx): {t_experiment*1000:.1f} ms")
         if t_move_total > t_experiment:
             print(f"  WARNING: stage may still be moving at end of experiment!")
@@ -268,7 +267,7 @@ if __name__ == "__main__":
     REPUMP_SHUTTER_do.close(t+0.01) 
     drop_time = t  # atoms begin free fall here
     compiler.shot_properties['drop_time'] = drop_time
-    photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.1e5)) #bins are 10us, hard coded
+    photon_counter.acquire(t=drop_time+t_PMT_delay, number_of_counts=int(.15e5)) #bins are 10us, hard coded
     #ai0.acquire(label='TOF_florescence', start_time = drop_time, end_time =t+0.2)
     
     scope_trig_do.go_high(t)
@@ -285,13 +284,15 @@ if __name__ == "__main__":
     
     #jump probe to blue
     t += 0.001
-    MAIN_JUMP_AMP_ao.constant(t, 0.002)
-    t += t_PMT_delay-0.005
+    MAIN_JUMP_AMP_ao.constant(t, 0.005)
+    t += t_PMT_delay-0.01
     
     REPUMP_SHUTTER_do.open(t)
     PROBE_SHUTTER_do.open(t)
 
-    t += 0.045
+    t += 0.06
+    
+
     MAIN_REL_JUMP_do.go_high(t)
     MAIN_REL_JUMP_do.go_low(t+0.03)
     '''
