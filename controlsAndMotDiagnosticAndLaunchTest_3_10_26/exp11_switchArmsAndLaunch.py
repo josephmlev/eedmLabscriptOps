@@ -169,11 +169,11 @@ if __name__ == "__main__":
     # ============================================================
     # Reference image -- MOT in home position
     # ============================================================
-    add_time_marker(t, "Reference image", verbose=True)
-    my_ids_camera.expose(
-        t=t, name='reference', frametype='atom',
-        trigger_duration=1*ms
-    )
+    #add_time_marker(t, "Reference image", verbose=True)
+    #my_ids_camera.expose(
+    #    t=t, name='reference', frametype='atom',
+    #    trigger_duration=1*ms
+    #)
     t += 0.01
 
     # ============================================================
@@ -249,9 +249,9 @@ if __name__ == "__main__":
     
     #MAIN_JUMP_AMP_ao.constant(t, -0.1)
 
-    my_ids_camera.expose(
-    t=t+0.0005, name=f'molasses', frametype='atom',
-    trigger_duration=1*ms)
+    #my_ids_camera.expose(
+    #t=t+0.0005, name=f'molasses', frametype='atom',
+    #trigger_duration=1*ms)
 
     
     #t += 1000e-6 #works for drop
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     
     #jump probe to blue
     t += 0.001
-    MAIN_JUMP_AMP_ao.constant(t, 0.005)
+    MAIN_JUMP_AMP_ao.constant(t, 0.006)
     t += t_PMT_delay-0.01
     
     REPUMP_SHUTTER_do.open(t)

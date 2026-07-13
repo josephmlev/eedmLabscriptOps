@@ -205,7 +205,10 @@ else:
                 y00 = 0.5 * (r0 + r1)
             sigma_x0 = (c1 - c0) / 6.0
             sigma_y0 = (r1 - r0) / 6.0
-            p0 = [offset0, amp0, x00, y00, sigma_x0, sigma_y0]
+            #curve fit guess
+            #p0 = [offset0, amp0, x00, y00, sigma_x0, sigma_y0]
+            p0 = [0, .5, 850, 650, 150, 150]
+
 
             try:
                 popt2d, pcov2d = curve_fit(
