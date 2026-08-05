@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
     add_time_marker(t, "PGC in moving frame", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
-    MAIN_JUMP_AMP_ao.ramp(t-0.000, 0.005, -0.0, -.3, 1e5) #(t, duration, initial, final, samplerate)
+    MAIN_JUMP_AMP_ao.ramp(t-0.000, 0.005, -0.0, -.15, 1e5) #(t, duration, initial, final, samplerate)
     #t += 0.01 #works for drop
     t+= 0.0035
     MRR_SHUTTER_do.close(t)
@@ -287,12 +287,12 @@ if __name__ == "__main__":
     MAIN_JUMP_AMP_ao.constant(t, 0.006)
     t += t_PMT_delay-0.01
     
-    REPUMP_SHUTTER_do.open(t)
+    #REPUMP_SHUTTER_do.open(t)
     PROBE_SHUTTER_do.open(t)
 
     t += 0.06
     
-
+    add_time_marker(t, "Jump to blue", verbose=True)
     MAIN_REL_JUMP_do.go_high(t)
     MAIN_REL_JUMP_do.go_low(t+0.03)
     '''
